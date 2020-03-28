@@ -4,12 +4,12 @@ const mongoose = require('mongoose');
 const Util = require('util');
 const Joi = require('joi');
 const diversDebugger = require('debug')('app:divers');
-const db = require('../dbHelper')
+const db = require('../db/dbDiver')
 
 const getSchema = Joi.object().keys({
     id: Joi.string().min(24).max(24).required()
 });
-const addSchema = Joi.object().keys({
+const diverSchema = Joi.object().keys({
     name: Joi.string().min(1).max(30).required(),
     seller: Joi.string().min(1).max(30).required(),
     activity: Joi.string().min(1).max(30).required(),
@@ -30,18 +30,24 @@ router.get('/:id', function(req, res) {
     //return data
     db.getFromDB(req.params.id, function(result){
         diversDebugger('Divers result \n'+result);
+        if(result == undefined){
+            res.status(500).send('Error on DB');
+            return;
+        }
         res.send(result);
     });
+    return;
     //res.send('Get with id' + req.params.id);
 });
 
 router.post('/addDiver', function(req, res) {
     diversDebugger(req.body.name, req.body.seller, req.body.activity);
-    /*const result = Joi.validate(req.body, addSchema);
+    const result = Joi.validate(req.body, diverSchema);
     if(result.error){
+        diversDebugger(result);
         res.status(400).send('Bad request. Name length should be greater or equals 3');
         return;
-    }*/
+    }
     diversDebugger(req.body.name, req.body.seller, req.body.activity, req.body.daysDiving);
 
     db.addDiver(req.body.name, req.body.seller, req.body.activity, req.body.daysDiving, req.body.price, function(result){

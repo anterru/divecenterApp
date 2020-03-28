@@ -1,17 +1,10 @@
 const mongoose = require('mongoose');
-const db = mongoose.connection;
+//const db = mongoose.connection;
+const db = require('./dbHelper');
 const dbDebugger = require('debug')('app:db');
 const dbErr = require('debug')('app:err');
+const staffModel= require('./dbStaff').Staff;
 
-//Needed variables to connect
-uri = "mongodb://localhost:27017/divingApp";
-const options = {
-    useNewUrlParser: true,
-    //autoReconnect: true,
-    keepAlive: true,
-    useUnifiedTopology: true,
-    keepAliveInitialDelay: 300000
-};
 
 //Diver schema on DB
 const diverSchema = mongoose.Schema({
@@ -22,11 +15,16 @@ const diverSchema = mongoose.Schema({
                 lowercase: true,
                 trim: true      //Remove white spaces from beginning and end
               },
-    seller:   { type: String,
+    seller: {
+        type: mongoose.Schema.Types.ObjectID,   //Also possible to refer to the Schema. Video 115
+        ref: 'staff',
+        required: true
+    },
+    /*seller:   { type: String,
                 required: true,
                 minlength: 1,
                 maxlength: 100
-              },
+              },*/
     activity: { type: String,
                 required: true,
                 enum: ['fundive', 'OW', 'AOW', 'Rescue', 'DSD']
@@ -52,29 +50,18 @@ const diverSchema = mongoose.Schema({
 });
 const Diver = mongoose.model('divers', diverSchema); //This is a class
 
-setupConnection = function(){
-    if(db._readyState != 1){    //Default 0, Connected 'db.once'-> 1
-        dbDebugger('Connecting to DB');
-        //initDB();
-        mongoose.connect(uri, options)
-            .then(() => {
-                db.once('open'),    //Mark connection as open
-                dbDebugger('Connected to DB')
-            })
-            .catch((err) => dbErr('Could not connect \n'+err))
-    }
-};
-
 async function getFromDB (id, next) {
-    setupConnection();
-    const result = await Diver.findById(id);
+    db.setupConnection();
+    const result = await Diver.find({_id: id})
+        .populate('seller');
+        //.select('name staffs');
     dbDebugger('Retrieved \n' +result)
     next(result);
 };
 module.exports.getFromDB = getFromDB;
 
 async function addDiver(name, seller, activity, daysDiving, price, next){
-    setupConnection();
+    db.setupConnection();
     const newDiver = new Diver({    //It checks every param is correct before saving
         name: name,
         seller: seller,
@@ -132,7 +119,7 @@ module.exports.deleteDiver = deleteDiver;
 async function updateAllDivers(param, valuePre, valuePost){
     setupConnection();
 };
-
+module.exports.diverModel = Diver;
 
 
 
