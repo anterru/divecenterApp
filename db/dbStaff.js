@@ -17,7 +17,7 @@ const staffSchema = mongoose.Schema({
     languages:   {
         type: [String],
         required: true,
-        enum: ["English", "French", "Spanish", "German", "Italian"],
+        minItems: 1,
         validate: {
             validator: function (v) {
                 return v && v.length > 0;  //First check to check it is not null
@@ -25,19 +25,55 @@ const staffSchema = mongoose.Schema({
             message: 'At least one valid language should be specified'
         }
     },
-    agency: {
-        type: [String],
-        required: true,
-        enum: ["SSI", "PADI"],
-        validate: {
-            validator: function (v) {
-                return v && v.length > 0;  //First check to check it is not null
-            },
-            message: 'At least one valid agency should be specified'
+    title: {
+        type: "array",
+        items: {
+            type: "object",
+            properties: {
+                agency: {
+                    type: String,
+                    required: true
+                },
+                level: {
+                    type: String,
+                    required: true,
+                    enum: ["DMT", "DM", "Instructor"]
+                }
+            }
         }
+    },
+    equipment: {
+        type: "array",
+        items: {
+            type: "object",
+            properties: {
+                fins: {
+                    type: String,
+                    required: true
+                },
+                ws: {
+                    type: String,
+                    required: true
+                },
+                bcd: {
+                    type: String,
+                    required: true
+                },
+                comment: {
+                    type: String
+                }
+            }
+        }
+    },
+    morning_food: {
+        type: String
+    },
+    afternoon_food: {
+        type: String
     }
 });
-module.exports.Staff = mongoose.model('staff', staffSchema); //This is a class
+
+const Staff = mongoose.model('StaffTest', staffSchema);
 
 async function getFromDB (id, next) {
     await db.setupConnection();
@@ -47,14 +83,11 @@ async function getFromDB (id, next) {
 };
 module.exports.getFromDB = getFromDB;
 
-async function addStaff(name, languages, agency, next){
+async function addStaff(params, next){
     await db.setupConnection();
-    const newStaff = new Staff({    //It checks every param is correct before saving
-        name: name,
-        languages: languages,
-        agency: agency
-    });
-    dbDebugger("staff is: " + newStaff);
+    //dbDebugger(params);
+    const newStaff = new Staff(params);
+    //dbDebugger("staff is: " + newStaff);
 
     var result;
     try{
@@ -65,7 +98,7 @@ async function addStaff(name, languages, agency, next){
         result = undefined
         for (field in ex.errors)
             dbErr(ex.errors[field].message);
-        //dbErr(ex.message);    //This one combines all of them in one message
+        dbErr(ex.message);    //This one combines all of them in one message
     }
     finally{
         next(result);

@@ -39,23 +39,23 @@ router.get('/:id', function(req, res) {
 });
 
 router.post('/addStaff', function(req, res) {
-    const result = Joi.validate(req.body, staffSchema);
+    /*const result = Joi.validate(req.body, staffSchema);
     if(result.error){
         staffDebugger(result);
         res.status(400).send('Bad request. Name length should be greater or equals 3');
         return;
-    }
-    staffDebugger(req.body.name, req.body.agency, req.body.languages);
+    }*/
+    staffDebugger(req.body.name, req.body.title, req.body.languages);
 
-    db.addStaff(req.body.name, req.body.languages, req.body.agency,function(result){
-        staffDebugger('Add diver');
-        if(result === undefined){
-            res.status(500).send();
-            return;
-        }
-        res.send(result);
-    });
-    return;
+    db.addStaff(req.body, function(result){
+                    staffDebugger('Add diver');
+                        if(result === undefined){
+                            res.status(500).send();
+                            return;
+                        }
+                        res.send(result);
+                    });
+                return;
 });
 
 router.put('/update/:id', function(req, res) {

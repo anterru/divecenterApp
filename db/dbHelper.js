@@ -13,11 +13,11 @@ const options = {
     keepAliveInitialDelay: 300000
 };
 
-setupConnection = function(){
+async function setupConnection(){
     dbDebugger('setupConnection');
     if(dbConnection._readyState != 1){    //Default 0, Connected 'db.once'-> 1
         dbDebugger('Connecting to DB');
-        mongoose.connect(uri, options, function(err){
+        await mongoose.connect(uri, options, function(err){
             if(err){
                 dbErr('Could not connect to the DB');
                 return(undefined);
