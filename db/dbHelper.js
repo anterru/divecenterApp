@@ -7,7 +7,6 @@ const dbErr = require('debug')('app:err');
 uri = "mongodb://localhost:27017/divingApp";
 const options = {
     useNewUrlParser: true,
-    //autoReconnect: true,
     keepAlive: true,
     useUnifiedTopology: true,
     keepAliveInitialDelay: 300000
@@ -29,5 +28,45 @@ async function setupConnection(){
         });
     }
 };
-module.exports.connection = dbConnection;
+
+async function getItem (id, model, fieldToPopulate, 
+                                    selectedPopulatedFields="", itemFields="", next){
+    setupConnection();
+    const result = await model.find({_id: id})
+                               .populate(fieldToPopulate, " "+selectedPopulatedFields)
+                               .select(itemFields);
+    dbDebugger('Populated retrieved \n' +result)
+    next(result);
+}
+
+async function addItem(params, model, next){
+    await setupConnection();
+    const newItem = new model(params);
+
+    var result;
+    try{
+        result = await newItem.save();     //Here is where the validation is performed
+        dbDebugger('Added');
+    }
+    catch(ex){
+        result = undefined
+        for (field in ex.errors)
+            dbErr(ex.errors[field].message);
+        dbErr(ex.message);    //This one combines all of them in one message
+    }
+    finally{
+        next(result);
+    }
+}
+
+async function deleteItem(id, model, next) {
+    setupConnection();
+    const result = await model.deleteMany({_id: id});
+    next(result);
+};
+
 module.exports.setupConnection = setupConnection;
+module.exports.getItem = getItem;
+module.exports.addItem = addItem;
+module.exports.connection = dbConnection;
+module.exports.deleteItem = deleteItem;

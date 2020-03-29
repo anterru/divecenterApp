@@ -4,17 +4,82 @@ const mongoose = require('mongoose');
 const Util = require('util');
 const Joi = require('joi');
 const staffDebugger = require('debug')('app:staff');
-const db = require('../db/dbStaff');
+const db = require('../db/dbHelper');
 
 const getSchema = Joi.object().keys({
     id: Joi.string().min(24).max(24).required()
 });
 
-const staffSchema = Joi.object().keys({
-    name: Joi.string().min(1).max(30).required(),
-    agency: Joi.array().items(Joi.string().valid(['SSI', 'PADI'])).required(),
-    languages: Joi.array().items(Joi.string()).required(),
+
+const staffSchema = mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        minlength: 1,
+        maxlength: 100,
+        lowercase: true,
+        trim: true      //Remove white spaces from beginning and end
+    },
+    languages:   {
+        type: [String],
+        required: true,
+        minItems: 1,
+        validate: {
+            validator: function (v) {
+                return v && v.length > 0;  //First check to check it is not null
+            },
+            message: 'At least one valid language should be specified'
+        }
+    },
+    title: {
+        type: "array",
+        items: {
+            type: "object",
+            properties: {
+                agency: {
+                    type: String,
+                    required: true
+                },
+                level: {
+                    type: String,
+                    required: true,
+                    enum: ["DMT", "DM", "Instructor"]
+                }
+            }
+        }
+    },
+    equipment: {
+        type: "array",
+        items: {
+            type: "object",
+            properties: {
+                fins: {
+                    type: String,
+                    required: true
+                },
+                ws: {
+                    type: String,
+                    required: true
+                },
+                bcd: {
+                    type: String,
+                    required: true
+                },
+                comment: {
+                    type: String
+                }
+            }
+        }
+    },
+    morning_food: {
+        type: String
+    },
+    afternoon_food: {
+        type: String
+    }
 });
+
+Staff = mongoose.model('staff', staffSchema);
 
 router.get('/:id', function(req, res) {
     //Validate input
@@ -27,7 +92,7 @@ router.get('/:id', function(req, res) {
         return;
     }
     //return data
-    db.getFromDB(req.params.id, function(result){
+    db.getItemAnd(req.params.id, Staff, function(result){
         staffDebugger('Staff result \n'+result);
         if(result == undefined) {
             res.status(500).send('Error on DB');
@@ -39,16 +104,8 @@ router.get('/:id', function(req, res) {
 });
 
 router.post('/addStaff', function(req, res) {
-    /*const result = Joi.validate(req.body, staffSchema);
-    if(result.error){
-        staffDebugger(result);
-        res.status(400).send('Bad request. Name length should be greater or equals 3');
-        return;
-    }*/
-    staffDebugger(req.body.name, req.body.title, req.body.languages);
-
-    db.addStaff(req.body, function(result){
-                    staffDebugger('Add diver');
+    db.addItem(req.body, Staff, function(result){
+                    staffDebugger('Add staff');
                         if(result === undefined){
                             res.status(500).send();
                             return;
@@ -88,7 +145,7 @@ router.delete('/delete/:id', function(req, res) {
         res.status(400).send(result.error);
         return;
     }
-    db.deleteStaff(req.params.id, function(result){
+    db.deleteItem(req.params.id, Staff, function(result){
         staffDebugger('delete staff \n'+result);
         if(result === undefined){
             res.status(500).send();
