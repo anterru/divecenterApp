@@ -7,6 +7,7 @@ var logger = require('morgan');
 
 var staffRouter = require('./routes/manageStaff');
 var diversRouter = require('./routes/manageDivers');
+var listsRouter = require('./routes/manageLists');
 
 
 var app = express();
@@ -24,6 +25,7 @@ app.use(bodyParser.json());
 
 app.use('/staff', staffRouter);
 app.use('/manageDiver', diversRouter);
+app.use('/lists', listsRouter);
 
 
 // catch 404 and forward to error handler

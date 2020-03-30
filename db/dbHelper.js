@@ -29,7 +29,14 @@ async function setupConnection(){
     }
 };
 
-async function getItem (id, model, fieldToPopulate, 
+async function getItem (id, model, next){
+    setupConnection();
+    const result = await model.find({_id: id});
+    dbDebugger('Full item retrieved \n' +result)
+    next(result);
+}
+
+async function getItemPopulated (id, model, fieldToPopulate, 
                                     selectedPopulatedFields="", itemFields="", next){
     setupConnection();
     const result = await model.find({_id: id})
@@ -42,6 +49,7 @@ async function getItem (id, model, fieldToPopulate,
 async function addItem(params, model, next){
     await setupConnection();
     const newItem = new model(params);
+    dbDebugger(newItem);
 
     var result;
     try{
@@ -59,6 +67,27 @@ async function addItem(params, model, next){
     }
 }
 
+async function updateItem(id, model, params, next){
+    setupConnection();
+    dbDebugger(id);
+    //Check it exists
+    const item = await model.findById(id);
+    if(!item){
+        dbDebugger("Didn't find the diver");
+        next(undefined);
+        return;
+    }
+    for (var field in model.schema.paths) {
+        if ((field !== '_id') && (field !== '__v')) {
+           if (params[field] !== undefined) {
+              item[field] = params[field];
+           }  
+        }  
+     } 
+    result = await item.save()
+    next(result);
+};
+
 async function deleteItem(id, model, next) {
     setupConnection();
     const result = await model.deleteMany({_id: id});
@@ -66,7 +95,9 @@ async function deleteItem(id, model, next) {
 };
 
 module.exports.setupConnection = setupConnection;
+module.exports.getItemPopulated = getItemPopulated;
 module.exports.getItem = getItem;
 module.exports.addItem = addItem;
 module.exports.connection = dbConnection;
+module.exports.updateItem = updateItem;
 module.exports.deleteItem = deleteItem;
