@@ -18,8 +18,7 @@
     "jsonschema": "^1.2.5",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
-    "mongoose": "^5.9.5",
-    "morgan": "~1.9.1",
-    "pug": "2.0.0-beta11"
+    "mongoose": "^5.9.7",
+    "morgan": "~1.9.1"
   }
 }
