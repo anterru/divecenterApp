@@ -1,3 +1,4 @@
+const auth = require('../middleware/auth').auth;
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
@@ -125,7 +126,7 @@ router.get('/populated', function(req, res) {
     //res.send('Get with id' + req.params.id);
 });
 
-router.get('/:id', function(req, res) {
+router.get('/:id', auth, function(req, res) {
     //Validate input
     const result = Joi.validate(req.params, getSchema);
     listDebugger('manageLists.js -> get list/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));

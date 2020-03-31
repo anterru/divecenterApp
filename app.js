@@ -1,3 +1,4 @@
+const config = require('config');
 var createError = require('http-errors');
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -5,9 +6,17 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var staffRouter = require('./routes/manageStaff');
-var diversRouter = require('./routes/manageDivers');
-var listsRouter = require('./routes/manageLists');
+var staffRouter = require('./routes/routerStaffs');
+var diversRouter = require('./routes/routerDivers');
+var listsRouter = require('./routes/routerLists');
+var usersRouter = require('./routes/routerUsers');
+var auth = require('./routes/routesAuth');
+
+//could be done with process.env.jwtPrivateKey
+if(!config.get('jwtPrivateKey')){
+    console.error("FATAL ERROR jwtPrivateKey not defined");
+    process.exit(1);
+}
 
 
 var app = express();
@@ -26,6 +35,8 @@ app.use(bodyParser.json());
 app.use('/staff', staffRouter);
 app.use('/manageDiver', diversRouter);
 app.use('/lists', listsRouter);
+app.use('/users', usersRouter);
+app.use('/auth', auth);
 
 
 // catch 404 and forward to error handler
