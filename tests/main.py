@@ -3,6 +3,7 @@ import json
 from helper import *
 import logging
 import re
+import sys
 
 url = "http://localhost:3000/"
 diver = "diver/"
@@ -130,21 +131,60 @@ default_entries = {
                 
             }
         ]
+    },
+    "user":{
+        "name": "Toni",
+        "email": "toni@gmail.com",
+        "password": "fundive123N,"
+    },
+    "login":{
+        "email": "toni@gmail.com",
+        "password": "fundive123N,"
     }
 }
+
+##########################
+#          USERS
+##########################
+
+def register(credentials):
+    response = requests.post(url+users+"register", json=credentials)
+    if (response.status_code == 200):
+        logging.debug(jsonPrettify(response.content))
+    else:
+        logging.error(response.content)
+    return response.status_code, 200
+
+@user
+def registerDecorator():
+    return register(default_entries['user'])
+
+def login(credentials):
+    expected = 200
+    response = requests.post(url+auth+"login", json=credentials)
+    if (response.status_code == expected):
+        logging.debug("Token = " + str(response.content))
+        return expected, response.status_code, response.content
+    else:
+        logging.error(response.content)
+    return expected, response.status_code, None
+
+@user
+def loginDecorator():
+    return login(default_entries['login'])
 
 ##########################
 #          DIVERS
 ##########################
 
-def postDiver():
-    response = requests.post(url+diver+"addDiver", json=default_entries['diver'])
+def postDiver(currentdiver):
+    response = requests.post(url+diver+"addDiver", json=currentdiver)
     currentId = response.json()['_id']
     return response.status_code, 200, response.json()['_id']
 
 @divers
 def postDiverDecorator():
-    return postDiver()
+    return postDiver(default_entries['diver'])
 
 def putDiver(id):
     #Get the item
@@ -228,20 +268,22 @@ def deleteStaff(id):
 def deleteStaffDecorator(id):
     return deleteStaff(id)
 
-
 ##########################
 #          LISTS
 ##########################
 
-@lists
-def postListDecorator():
+def postList():
     #Send new list
     response = requests.post(url+boatlist+"addList", json=default_entries['boat_list'])
     logging.debug(jsonPrettify(response.content))
     return response.status_code, 200, response.json()['_id']
 
-#@lists
-def putListsDecorator(id):
+@lists
+def postListDecorator():
+    return postList()
+
+def putLists(id):
+    expected = 200
     #Declare staffs
     expected, res, staffid1 = postStaff()
     if ( expected != res ):
@@ -256,11 +298,11 @@ def putListsDecorator(id):
         return "Could not change staff2 ", " to be able", 0
 
     #Declare divers
-    expected, res, diverid1 = postDiver()
+    expected, res, diverid1 = postDiver(default_entries['diver'])
     if ( expected != res ):
         return "Could not post diver1 ", " to be able", 0
 
-    expected, res, diverid2 = postDiver()
+    expected, res, diverid2 = postDiver(default_entries['diver'])
     if ( expected != res ):
         return "Could not post diver2 ", " to be able", 0
 
@@ -269,7 +311,10 @@ def putListsDecorator(id):
         return "Could not change diver2 ", " to be able", 0
     
     #Get the item
-    data = requests.get(url+boatlist+id)
+    data = requests.get(url+boatlist+id, headers={'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTg4NmVkZTRlNzhhYzk2ZjRlZmY1MTQiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNTg2MDE3MDk3fQ.BEanHHAd0tOBjeempT0Z29MtVF9qjHDZXk2PXpOjXGE'})
+    if(data.status_code != expected):
+        logging.error(data.content)
+        return data.status_code, expected
     if (len(data.json()) == 0):
         logging.error("List with ID " + id + " not found. Expected to find it")
         return ("List with ID " + id + " not found"), " to find it"
@@ -286,54 +331,100 @@ def putListsDecorator(id):
     return response.status_code, 200
 
 @lists
-def getListDecorator(id):
-    #Get list
-    response = requests.get(url+boatlist+id)
-    if (len(response.json()) == 0):
-        logging.error("List with ID " + id + " not found. Expected to find it")
-        return ("List with ID " + id + " not found"), " to find it"
-    logging.debug(jsonPrettify(response.content))
+def putListsDecorator(id):
+    return putLists(id)
 
-    #Analyze it
-    json_result = response.json()[0]
-    if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['staff'][0]['name'])):
-        return "Staff 1 does not follow the pattern", " to follow it"
-    if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['staff'][1]['name'])):
-        return "Staff 2 does not follow the pattern", " to follow it"
-    if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['divers'][0]['name'])):
-        return "Diver 1 does not follow the pattern", " to follow it"
-    if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['divers'][1]['name'])):
-        return "Diver 2 does not follow the pattern", " to follow it"
+@lists
+def getListWithToken(listid):
+    expected = 200
+    #Get list
+
+    #response = requests.get(url+boatlist+id)
+    response = requests.get(url+boatlist+listid, headers={'x-auth-token': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTg4NmVkZTRlNzhhYzk2ZjRlZmY1MTQiLCJpc0FkbWluIjpmYWxzZSwiaWF0IjoxNTg2MDE3MDk3fQ.BEanHHAd0tOBjeempT0Z29MtVF9qjHDZXk2PXpOjXGE'})
+    if (response.status_code != expected):
+        logging.error(response.content)
+    else:
+        if (len(response.json()) == 0):
+            logging.error("List with ID " + id + " not found. Expected to find it")
+            return ("List with ID " + id + " not found"), " to find it"
+        logging.debug(jsonPrettify(response.content))
+
+        #Analyze it
+        json_result = response.json()[0]
+        if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['staff'][0]['name'])):
+            return "Staff 1 does not follow the pattern", " to follow it"
+        if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['staff'][1]['name'])):
+            return "Staff 2 does not follow the pattern", " to follow it"
+        if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['divers'][0]['name'])):
+            return "Diver 1 does not follow the pattern", " to follow it"
+        if (not re.search(r"/^[a-z][a-z\s]*$/", json_result['activities'][0]['divers'][1]['name'])):
+            return "Diver 2 does not follow the pattern", " to follow it"
+    return response.status_code, 200
+
+@lists
+def getListDecorator(id):
+    return getListWithToken(id)
+
+def getListPopulated(id):
+    expected = 200
+    response = requests.get(url+boatlist+"populated?id="+id)
+    if (response.status_code != expected):
+        logging.error(response.content)
+        return response.status_code, expected
+       
+    logging.debug(jsonPrettify(response.content))
     return response.status_code, 200
 
 @lists
 def getPopulatedListDecorator(id):
-    response = requests.get(url+boatlist+"populated?id="+id)
-    logging.debug(jsonPrettify(response.content))
+    return getListPopulated(id)
+
+def deleteList(id):
+    response = requests.delete(url+boatlist+"delete/"+id)
     return response.status_code, 200
 
 @lists 
 def deleteListDecorator(id):
-    response = requests.delete(url+boatlist+"delete/"+id)
-    return response.status_code, 200
+    return deleteList(id)
 
-tests_ok        = 0
-tests_fail      = 0
-tests_skipped   = 0
 
-id = ""
-for name,func in TESTS.items():
-    if (str.startswith(name, 'post')):
-        res, expected, id = func()
-    else:
-        res, expected = func(id)
-    if (res == expected):
-        tests_ok += 1
-        logging.info("TEST OK " +name+ " ID + "+id)
-    else:
-        print ("ERROR - " + name + " Result: " + str(res) + " Expected: " + str(expected))
-        tests_fail += 1
-        logging.error("TEST NOK - " + name + " Result: " + str(res) + " Expected: " + str(expected))
+def main():
+    tests_ok        = 0 
+    tests_fail      = 0
+    tests_skipped   = 0
 
-print("OK - " + str(tests_ok))
-print("FAIL - " + str(tests_fail))
+    id = ""
+    token = None
+    for name,func in TESTS.items():
+        testPerformed = False
+        if (str.startswith(name, 'post')):
+            res, expected, id = func()
+            testPerformed = True
+        if (str.startswith(name, 'get') or str.startswith(name, 'put') or str.startswith(name, 'delete')):
+            res, expected = func(id)
+            testPerformed = True
+        if (str.startswith(name, 'login')):
+            res, expected, token = func()
+            testPerformed = True
+        if (not testPerformed):
+            res, expected = func()
+
+        if (res == expected):
+            #print("TEST OK " +name.replace('Decorator', ''))
+            tests_ok += 1
+            logging.debug("TEST OK " +name.replace('Decorator', ''))
+        else:
+            print ("ERROR - " + name.replace('Decorator', '') + " \tResult: " + str(res) + " - Expected: " + str(expected))
+            tests_fail += 1
+            logging.error("TEST NOK - " + name.replace('Decorator', '') + " \tResult: " + str(res) + " - Expected: " + str(expected))
+
+    logging.info("OK - " + str(tests_ok))
+    logging.info("FAIL - " + str(tests_fail))
+    print("OK - " + str(tests_ok))
+    print("FAIL - " + str(tests_fail))
+
+if __name__ == "__main__":
+    for arg in sys.argv[1:]:
+        addDecorator(str(arg))
+    main()
+
