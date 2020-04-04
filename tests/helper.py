@@ -1,8 +1,21 @@
 import logging
 import json
 
-TESTS = dict()
+##########################
+#        CONSTANTS
+##########################
+url = "http://localhost:3000/"
+diver = "diver/"
+staff = "staff/"
+boatlist = "lists/"
+users = "users/"
+auth  = "auth/"
 
+##########################
+#        TESTS
+##########################
+
+TESTS = dict()
 diversFunctions = dict()
 staffsFunctions = dict()
 listsFunctions = dict()
@@ -10,7 +23,7 @@ usersFunctions = dict()
 debugFunctions = dict()
 
 ##########################
-#        HELPERS
+#        FUNCTIONS
 ##########################
 def jsonPrettify(toPrint):
     parsed = json.loads(toPrint)
@@ -40,8 +53,15 @@ def initFunctions(tags):
         if (tag == "debug"):
             TESTS.update(debugFunctions)
             continue
-        
 
+def reportResults(testsOk, testsFail, testsSkip):
+    logging.info("OK - " + str(testsOk))
+    logging.info("FAIL - " + str(testsFail))
+    logging.info("SKIP - " + str(testsSkip))
+    print("OK - " + str(testsOk))
+    print("FAIL - " + str(testsFail))
+    print("SKIP - " + str(testsSkip))
+      
 ##########################
 #        DECORATORS
 ##########################
