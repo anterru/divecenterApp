@@ -424,7 +424,6 @@ def main():
     print("FAIL - " + str(tests_fail))
 
 if __name__ == "__main__":
-    for arg in sys.argv[1:]:
-        addDecorator(str(arg))
+    initFunctions(sys.argv[1:])
     main()
 
