@@ -1,10 +1,12 @@
 const auth = require('../middleware/auth').auth;
+const admin = require('../middleware/admin');
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
 const Util = require('util');
 const Joi = require('joi');
 const listDebugger = require('debug')('app:list');
+const listErr = require('debug')('err:list');
 const db = require('../db/dbHelper');
 const dbList = require('../db/dbList');
 
@@ -103,7 +105,6 @@ const listSchema = mongoose.Schema({
 
 List = mongoose.model('list', listSchema);
 
-
 router.get('/populated', function(req, res) {
     //Validate input
     const result = Joi.validate(req.query, getSchema);
@@ -149,7 +150,7 @@ router.get('/:id', auth, function(req, res) {
 });
 
 router.post('/addList', function(req, res) {
-    listDebugger('manageLists.js -> post list \n' + Util.inspect( req.body ));
+    listDebugger('manageLists.js -> post list \n');
     db.addItem(req.body, List, function(result){
         listDebugger('manageLists.js -> add list');
                         if(result === undefined){

@@ -1,6 +1,9 @@
+//require('express-async-errors')
+//const error = require('./middleware/error')
 const config = require('config');
 var createError = require('http-errors');
 var express = require('express');
+var cors = require('cors')
 var bodyParser = require('body-parser');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -31,9 +34,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.json());
+app.use(cors())
 
 app.use('/staff', staffRouter);
-app.use('/manageDiver', diversRouter);
+app.use('/diver', diversRouter);
 app.use('/lists', listsRouter);
 app.use('/users', usersRouter);
 app.use('/auth', auth);

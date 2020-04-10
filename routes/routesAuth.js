@@ -18,6 +18,7 @@ function validate(user){
 }
 
 router.post('/login', function(req, res) {
+    authDebugger("routerAuth -> login");
     db.setupConnection();
     authDebugger(req.body);
     validate(req.body);

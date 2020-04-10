@@ -84,7 +84,7 @@ Staff = mongoose.model('staff', staffSchema);
 router.get('/:id', function(req, res) {
     //Validate input
     const result = Joi.validate(req.params, getSchema);
-    staffDebugger('manageStaff.js -> get staff/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    staffDebugger('manageStaff.js -> get staff/:id \n');// + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {
@@ -93,7 +93,7 @@ router.get('/:id', function(req, res) {
     }
     //return data
     db.getItem(req.params.id, Staff,next=function(result){
-        staffDebugger('Staff result \n'+result);
+        //staffDebugger('Staff result \n'+result);
         if(result == undefined) {
             res.status(500).send('Error on DB');
             return;
@@ -105,7 +105,7 @@ router.get('/:id', function(req, res) {
 
 router.post('/addStaff', function(req, res) {
     db.addItem(req.body, Staff, function(result){
-                    staffDebugger('Add staff');
+                    //staffDebugger('Add staff');
                         if(result === undefined){
                             res.status(500).send();
                             return;
@@ -117,8 +117,8 @@ router.post('/addStaff', function(req, res) {
 
 router.put('/update/:id', function(req, res) {
     const result = Joi.validate(req.params, getSchema);
-    staffDebugger(req.params+ "   \n" + result);
-    staffDebugger('manageStaff.js -> put updateItem/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    //staffDebugger(req.params+ "   \n" + result);
+    staffDebugger('manageStaff.js -> put updateItem/:id \n');// + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {
@@ -126,7 +126,7 @@ router.put('/update/:id', function(req, res) {
         return;
     }
     db.updateItem(req.params.id, Staff, req.body, function(result){
-        staffDebugger('update staff \n'+result);
+        //staffDebugger('update staff \n'+result);
         if(result === undefined){
             res.status(500).send();
             return;
@@ -138,7 +138,7 @@ router.put('/update/:id', function(req, res) {
 
 router.delete('/delete/:id', function(req, res) {
     const result = Joi.validate(req.params, getSchema);
-    staffDebugger('manageStaff.js -> put deleteStaff/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    staffDebugger('manageStaff.js -> put deleteStaff/:id \n');// + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {
@@ -146,7 +146,7 @@ router.delete('/delete/:id', function(req, res) {
         return;
     }
     db.deleteItem(req.params.id, Staff, function(result){
-        staffDebugger('delete staff \n'+result);
+        //staffDebugger('delete staff \n'+result);
         if(result === undefined){
             res.status(500).send();
             return;
