@@ -9,6 +9,7 @@ from unit_tests.unit_staff import *
 from unit_tests.unit_lists import *
 from unit_tests.unit_users import *
 
+
 logging.basicConfig(filename='./logs/test.log', filemode='w', level=logging.DEBUG)
 currentId = ""
 
@@ -30,13 +31,20 @@ def main():
         if (str.startswith(name, 'login')):
             res, expected, token = func()
             testPerformed = True
+        if (str.startswith(name, 'myProfile')):
+            res, expected, content = func(token.decode("utf-8"))
+            testPerformed = True
         if (not testPerformed):
             res, expected = func()
 
         if (res == expected):
             #print("TEST OK " +name.replace('Decorator', ''))
-            tests_ok += 1
-            logging.debug("TEST OK " +name.replace('Decorator', ''))
+            if (res != "skip"):
+                tests_ok += 1
+                logging.debug("TEST OK " +name.replace('Decorator', ''))
+            else:
+                tests_skipped += 1
+                logging.debug("TEST SKIPPED " +name.replace('Decorator', ''))
         else:
             print ("ERROR - " + name.replace('Decorator', '') + " \tResult: " + str(res) + " - Expected: " + str(expected))
             tests_fail += 1

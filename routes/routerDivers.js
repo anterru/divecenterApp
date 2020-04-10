@@ -1,3 +1,4 @@
+const asyncMiddleware = require('../middleware/async');
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
@@ -109,7 +110,7 @@ const Diver = mongoose.model('divers', diverSchema); //This is a class
 router.get('/:id', function(req, res) {
     //Validate input
     const result = Joi.validate(req.params, getSchema);
-    diversDebugger('manageDivers.js -> get divers/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    diversDebugger('manageDivers.js -> get diver/:id \n' ); //+ Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {
@@ -118,9 +119,9 @@ router.get('/:id', function(req, res) {
     }
     //return data
     db.getItemPopulated(req.params.id, Diver, fieldToPopulate='license.checker', 
-                            selectedPopulatedFields='name', itemFields='name license lastDive', function(result){
-        diversDebugger('Divers result \n'+result);
-        if(result == undefined){
+                            selectedPopulatedFields='name', itemFields='', function(result){
+        //diversDebugger('Divers result \n'+result);
+        if(result == false || result == undefined){
             res.status(500).send('Error on DB');
             return;
         }
@@ -131,10 +132,10 @@ router.get('/:id', function(req, res) {
 });
 
 router.post('/addDiver', function(req, res) {
-    diversDebugger(req.body);
+    diversDebugger('manageDivers.js -> post diver\n' ); //+ Util.inspect( req.body ) );
     db.addItem(req.body, Diver, function(result){
-                    diversDebugger('Add diver');
-                    if(result === undefined){
+                    diversDebugger('Add diver result '+result);
+                    if(result == false || result === undefined){
                         res.status(500).send();
                         return;
                     }
@@ -145,7 +146,7 @@ router.post('/addDiver', function(req, res) {
 
 router.put('/update/:id', function(req, res) {
     const result = Joi.validate(req.params, getSchema);
-    diversDebugger('manageDivers.js -> put updateDiver/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    diversDebugger('manageDivers.js -> put updateDiver/:id \n');// + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {
@@ -153,8 +154,8 @@ router.put('/update/:id', function(req, res) {
         return;
     }
     db.updateItem(req.params.id, Diver, req.body, function(result){
-        diversDebugger('update diver \n'+result);
-        if(result === undefined){
+        //diversDebugger('update diver \n'+result);
+        if(result == false || result === undefined){
             res.status(500).send();
             return;
         }
@@ -174,7 +175,7 @@ router.put('/update', function(req, res) {
     }
     db.updateItem(req.query.id, Diver, req.body, function(result){
         diversDebugger('update diver \n'+result);
-        if(result === undefined){
+        if(result == false || result === undefined){
             diversDebugger('Value was undefined');
             res.status(500).send();
             return;
@@ -186,7 +187,7 @@ router.put('/update', function(req, res) {
 
 router.delete('/delete/:id', function(req, res) {
     const result = Joi.validate(req.params, getSchema);
-    diversDebugger('manageDivers.js -> put updateDiver/:id \n' + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
+    diversDebugger('manageDivers.js -> put updateDiver/:id \n');// + Util.inspect( req.params ) + "\nResult\n" + Util.inspect(result));
 
     //return in case of bad format
     if(result.error) {

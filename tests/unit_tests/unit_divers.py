@@ -4,6 +4,7 @@ from helper import *
 import logging
 import re
 import sys
+import urllib3
 
 default_divers = {
     'diver1': {
@@ -34,42 +35,65 @@ default_divers = {
 ##########################
 
 def postDiver(currentdiver):
-    response = requests.post(url+diver+"addDiver", json=currentdiver)
-    currentId = response.json()['_id']
-    return response.status_code, 200, response.json()['_id']
+    expected = 200
+    try:
+        response = requests.post(url+diver+"addDiver", json=currentdiver)
+        print("POST " +str(response))
+        currentId = response.json()['_id']
+        return response.status_code, expected, response.json()['_id']
+    except requests.exceptions.ConnectionError:
+        return 0, expected, "skip"
 
 @divers
 def postDiverDecorator():
     return postDiver(default_divers['diver1'])
 
 def putDiver(id):
-    #Get the item
-    data = requests.get(url+diver+id)
-    #Change values
-    json_result = data.json()[0]
-    json_result['name'] = 'Toni'
-    json_result['country'] = 'France'
-    #Update values
-    response = requests.put(url+diver+"update/"+id, json=json_result)
-    logging.debug(jsonPrettify(response.content))
-    return response.status_code, 200
+    expected = 200
+    try:
+        #Get the item
+        data = requests.get(url+diver+id)
+        print("PUT " + str(data.status_code) + " " +str(data))
+        #Change values
+        if (data.status_code != 200):
+            json_result = data.json()[0]
+            json_result['name'] = 'Toni'
+            json_result['country'] = 'France'
+            #Update values
+            response = requests.put(url+diver+"update/"+id, json=json_result)
+            logging.debug(jsonPrettify(response.content))
+            return response.status_code, expected
+        
+        return data.status_code, 200
+        
+    except requests.exceptions.ConnectionError:
+        return 0, expected, "skip"
 
 @divers
 def putDiverDecorator(id):
     return putDiver(id)
 
 def getDiver(id):
-    response = requests.get(url+diver+id)
-    #logging.debug(jsonPrettify(response.content))
-    return response.status_code, 200
+    expected = 200
+    try:
+        response = requests.get(url+diver+id)
+        print("GET " +str(response))
+        return response.status_code, expected
+    except requests.exceptions.ConnectionError:
+        return 0, expected, "skip"
 
 @divers
 def getDiverDecorator(id):
     return getDiver(id)
 
 def deleteDiver(id):
-    response = requests.delete(url+diver+"delete/"+id)
-    return response.status_code, 200
+    expected = 200
+    try:
+        response = requests.delete(url+diver+"delete/"+id)
+        print("DELETE " +str(response))
+        return response.status_code, expected
+    except requests.exceptions.ConnectionError:
+        return 0, expected, "skip"
 
 @divers
 def deleteDiverDecorator(id):

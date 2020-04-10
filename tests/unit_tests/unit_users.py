@@ -41,9 +41,36 @@ def login(credentials):
         return expected, response.status_code, response.content
     else:
         logging.error(response.content)
-    return expected, response.status_code, None
+    return  response.status_code, expected, None
 
 @user
 def loginDecorator():
     return login(default_values['login'])
 
+def myProfileGet(token):
+    expected = 200
+    response = requests.get(url+users+"myProfile", headers={'x-auth-token': token})
+    if (response.status_code == expected):
+        logging.debug(jsonPrettify(response.content))
+    else:
+        print(response.content)
+        logging.error(response.content)
+    return response.status_code, expected, str(response.content)
+
+@user
+def myProfileGetDecorator(token):
+    return myProfileGet(token)
+
+def myProfileDelete(token):
+    expected = 200
+    response = requests.delete(url+users+"delete", headers={'x-auth-token': token})
+    if (response.status_code == expected):
+        logging.debug(response.content)
+    else:
+        print(response.content)
+        logging.error(response.content)
+    return response.status_code, expected, str(response.content)
+
+@user
+def myProfileDeleteDecorator(token):
+    return myProfileDelete(token)
